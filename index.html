@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RE4 Inventory</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #121212; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            font-family: sans-serif;
+        }
+
+        #control-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 200;
+        }
+
+        .btn {
+            background: linear-gradient(180deg, #444 0%, #222 100%);
+            border: 2px solid #555;
+            color: #ddd;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            opacity: 0.6;
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            border-color: #FFD700;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+            opacity: 1;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            background: #151515;
+        }
+
+        #view-stage {
+            perspective: 1200px;
+        }
+
+        #inventory-grid {
+            position: relative;
+            display: grid;
+            gap: 2px;
+            background-color: rgba(0, 0, 0, 0.85);
+            padding: 12px;
+            border: 4px solid #3a3a3a;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9);
+            transform: rotateX(20deg);
+            transform-style: preserve-3d;
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(35, 35, 35, 0.6); 
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        .inventory-item {
+            position: absolute;
+            box-sizing: border-box;
+            background-color: transparent;
+            border: none;
+            pointer-events: none; 
+            z-index: 10;
+            transform-style: preserve-3d; 
+        }
+
+        .item-texture {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #e2e2e2;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+            padding: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background-size: 100% 100%; 
+            background-repeat: no-repeat;
+            background-position: center;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            backface-visibility: hidden;
+            transition: transform 0.12s ease-out, filter 0.12s ease-out;
+        }
+
+        
+        .item-handgun { background-image: url('images/handgun.png'); }
+        .item-blacktail { background-image: url('images/blacktail.png'); }
+        .item-red9 { background-image: url('images/red9.png'); }
+        .item-punisher { background-image: url('images/punisher.png'); }
+        .item-tmp { background-image: url('images/tmp.png'); }
+        .item-killer7 { background-image: url('images/killer7.png'); }
+        .item-striker { background-image: url('images/striker.png'); }
+        .item-broken_butterfly { background-image: url('images/brokenbutterfly.png'); }
+        .item-mine_thrower { background-image: url('images/minethrower.png'); }
+        .item-shotgun {background-image: url('images/shotgun.png'); }
+        .item-auto_shotgun { background-image: url('images/autoshotgun.png'); }
+        .item-rifle { background-image: url('images/rifle.png'); }
+        .item-semi_auto_rifle { background-image: url('images/semiautorifle.png'); }
+        .item-herb { background-image: url('images/greenherb.png'); }
+        .item-red_herb { background-image: url('images/redherb.png'); }
+        .item-yellow_herb { background-image: url('images/yellowherb.png'); }
+        .item-handgun_ammo {background-image: url('images/ammo_handgun.png'); }
+        .item-shotgun_shells {background-image: url('images/ammo_shotgun.png'); }
+        .item-tmp_ammo {background-image: url('images/ammo_tmp.png'); }
+        .item-rifle_ammo {background-image: url('images/ammo_rifle.png'); }
+        .item-magnum_ammo {background-image: url('images/ammo_magnum.png'); }
+        .item-grenade { background-image: url('images/grenade.png'); }
+        .item-flash { background-image: url('images/flash.png'); }
+        .item-incendiary { background-image: url('images/incendiary.png'); }
+        .item-first_aid { background-image: url('images/firstaidspray.png'); }
+        .herb-gr { background-image: url('images/mixed_gr.png'); }
+        .herb-gg { background-image: url('images/mixed_gg.png'); }
+        .herb-gy { background-image: url('images/mixed_gy.png'); }
+        .herb-ggg { background-image: url('images/mixed_ggg.png'); }
+        .herb-ggy { background-image: url('images/mixed_ggy.png'); }
+        .herb-gry { background-image: url('images/mixed_gry.png'); }
+
+        #highlighter-overlay {
+            position: absolute;
+            box-sizing: border-box;
+            z-index: 100;
+            pointer-events: none; 
+            transition: left 0.04s ease-out, top 0.04s ease-out; 
+            transform-style: preserve-3d; 
+        }
+
+        .hl-empty {
+            outline: 2px solid #ffff80; 
+            outline-offset: -2px;
+            background-color: transparent;
+        }
+
+        .hl-item {
+            outline: 2px solid #FFD700;
+            outline-offset: -2px;
+            animation: inventoryBlink 0.6s infinite alternate;
+        }
+
+        .hl-holding {
+            outline: 2px solid lime;
+            outline-offset: -2px;
+            background-color: rgba(0, 255, 0, 0.15);
+        }
+
+        .hl-invalid {
+            outline: 2px solid #ff4d4d;
+            outline-offset: -2px;
+            animation: inventoryRedBlink 0.5s infinite alternate;
+        }
+
+        @keyframes inventoryBlink {
+            0% { background-color: rgba(255, 215, 0, 0.05); }
+            100% { background-color: rgba(255, 215, 0, 0.2); }
+        }
+
+        .icon-btn {
+            position: relative;
+        }
+
+        .icon-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111;
+            border: 1px solid #555;
+            color: #ccc;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            padding: 5px 10px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .icon-btn:hover::after {
+            opacity: 1;
+        }
+
+        .density-btn.active, .size-btn.active {
+            color: #FFD700;
+            border-color: #FFD700;
+            background: #1a1800;
+        }
+
+        @keyframes inventoryRedBlink {
+            0% { background-color: rgba(255, 77, 77, 0.05); }
+            100% { background-color: rgba(255, 77, 77, 0.3); }
+        }
+
+        @keyframes gridSlideOut {
+            0%   { opacity: 1;   transform: translateY(0px);  }
+            100% { opacity: 0;   transform: translateY(18px); }
+        }
+
+        @keyframes gridSlideIn {
+            0%   { opacity: 0;   transform: translateY(-14px); }
+            100% { opacity: 1;   transform: translateY(0px);   }
+        }
+
+        #view-stage.anim-out {
+            animation: gridSlideOut 0.18s ease-in forwards;
+            pointer-events: none;
+        }
+
+        #view-stage.anim-in {
+            animation: gridSlideIn 0.22s ease-out forwards;
+            pointer-events: none;
+        }
+
+        
+        #info-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 200;
+            padding: 8px 14px;
+            font-size: 15px;
+        }
+
+        #info-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 299;
+        }
+
+        #info-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a1a1a;
+            border: 3px solid #555;
+            padding: 22px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            z-index: 300;
+            min-width: 260px;
+            border-radius: 2px;
+        }
+
+        #info-modal h3 {
+            margin: 0 0 14px 0;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 8px;
+        }
+
+        #info-modal p {
+            font-size: 13px;
+            margin: 10px 0;
+            color: #ddd;
+            line-height: 1.4;
+        }
+
+        
+        #music-container {
+            position: absolute;
+            top: 20px;
+            left: 70px;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(180deg, #333 0%, #1a1a1a 100%);
+            border: 2px solid #555;
+            padding: 6px 12px;
+            height: 35px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            opacity: 0.4;
+            transition: all 0.15s ease;
+        }
+
+        #music-container:hover {
+            opacity: 1;
+            border-color: #FFD700;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+        }
+
+        #volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 80px;
+            height: 4px;
+            background: #555;
+            outline: none;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+
+        #volume-slider::-moz-range-thumb {
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="control-panel">
+        <button class="btn icon-btn" onclick="triggerResetLayout()" data-tooltip="Reshuffle" style="padding:8px 12px; font-size:15px;">↺</button>
+        <button class="btn icon-btn" onclick="triggerRandomSpawn()" data-tooltip="Randomize" style="padding:8px 12px; font-size:15px;">🎲</button>
+        
+        <div style="position:relative;">
+            <button class="btn icon-btn" id="cog-btn" onclick="toggleSettings()" data-tooltip="Settings" style="padding:8px 12px; font-size:15px;">⚙</button>
+            <div id="settings-panel" style="
+                display:none;
+                position:absolute;
+                top: calc(100% + 10px);
+                right:0;
+                background:#1a1a1a;
+                border:2px solid #555;
+                padding:12px 14px;
+                white-space:nowrap;
+                box-shadow:0 8px 24px rgba(0,0,0,0.7);
+            ">
+                
+                <div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#888; margin-bottom:10px;">Difficulty</div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <button class="btn density-btn active" id="density-standard"     onclick="setDensity('standard')"     style="text-align:left; border-color:#555;">Standard</button>
+                    <button class="btn density-btn"        id="density-hardcore"     onclick="setDensity('hardcore')"     style="text-align:left;">Hardcore</button>
+                    <button class="btn density-btn"        id="density-professional" onclick="setDensity('professional')" style="text-align:left;">Professional</button>
+                </div>
+
+                
+                <div style="border-top: 1px solid #444; margin-top: 12px; padding-top: 10px;">
+                    <div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#888; margin-bottom:10px;">Case Size</div>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <button class="btn size-btn"        id="size-s"  onclick="setCaseSize('s')"  style="text-align:left;">S &nbsp;<span style="color:#666; font-size:10px;">6 × 10</span></button>
+                        <button class="btn size-btn"        id="size-m"  onclick="setCaseSize('m')"  style="text-align:left;">M &nbsp;<span style="color:#666; font-size:10px;">7 × 11</span></button>
+                        <button class="btn size-btn"        id="size-l"  onclick="setCaseSize('l')"  style="text-align:left;">L &nbsp;<span style="color:#666; font-size:10px;">8 × 12</span></button>
+                        <button class="btn size-btn active" id="size-xl" onclick="setCaseSize('xl')" style="text-align:left; border-color:#555;">XL &nbsp;<span style="color:#666; font-size:10px;">8 × 15</span></button>
+                    </div>
+                </div>
+
+                
+                <div style="border-top: 1px solid #444; margin-top: 12px; padding-top: 10px; display: flex; align-items: center;">
+                    <label style="font-size: 11px; color: #aaa; display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="toggle-hide-text" checked onchange="toggleTextVisibility()" style="cursor: pointer; accent-color: #FFD700;">
+                        Hide Text on Images
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-stage">
+        <div id="inventory-grid">
+            <div id="highlighter-overlay"></div>
+        </div>
+    </div>
+
+    <button id="info-btn" class="btn" onclick="toggleInfoModal()">?</button>
+
+    <div id="music-container">
+        <span style="font-size: 13px; cursor: default; user-select: none;">🎵</span>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.3" oninput="updateVolume(this.value)">
+    </div>
+
+    <div id="info-overlay" onclick="toggleInfoModal()"></div>
+    <div id="info-modal">
+        <h3>Controls</h3>
+        <p><strong>W, A, S, D / Arrows:</strong> Move cursor</p>
+        <p><strong>Space / Mouse Click:</strong> Pick up / Place item</p>
+        <p><strong>R / Scroll Wheel:</strong> Rotate held item</p>
+
+        <p style="font-size: 11px; color: #888; border-top: 1px solid #444; padding-top: 10px; margin-top: 14px; line-height: 1.3;">
+            <strong>Enabling keyboard input for Wallpaper Engine:</strong> When importing wallpaper from URL, you need to hide your desktop icons using the assigned hotkey <strong>Default: Alt + K</strong>.
+        </p>
+
+        <button class="btn" onclick="toggleInfoModal()" style="margin-top: 14px; width: 100%;">Close</button>
+    </div>
+
+    <audio id="bg-music" src="serenity.mp3" loop></audio>
+
+    <script>
+
+        const sfxStart    = new Audio('audio/sfx_start.wav');
+        const sfxMove     = new Audio('audio/sfx_move.wav');
+        const sfxMoveHeld = new Audio('audio/sfx_move_held.wav');
+        const sfxPick     = new Audio('audio/sfx_pick.wav');
+        const sfxPlace    = new Audio('audio/sfx_place.wav');
+        const sfxRotate   = new Audio('audio/sfx_rotate.wav');
+        const sfxFail     = new Audio('audio/sfx_fail.wav');
+        const bgMusic     = document.getElementById('bg-music');
+
+        function playSFX(audio) {
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log("Audio playback prevented:", e));
+        }
+
+        function updateVolume(val) {
+            if (bgMusic) {
+                bgMusic.volume = val;
+                if (val > 0 && bgMusic.paused) {
+                    bgMusic.play().catch(e => console.log("Music play blocked:", e));
+                }
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { 
+            playSFX(sfxStart); 
+            if (bgMusic) {
+                const slider = document.getElementById('volume-slider');
+                bgMusic.volume = slider ? slider.value : 0.3;
+                bgMusic.play().catch(e => console.log("Autoplay blocked. Click window context to start background track."));
+            }
+        });
+
+        window.addEventListener('click', () => {
+            if (bgMusic && bgMusic.paused && bgMusic.volume > 0) {
+                bgMusic.play().catch(e => console.log("Music play blocked:", e));
+            }
+        }, { once: true });
+
+        const CASE_SIZES = {
+            s:  { w: 10, h: 6  },
+            m:  { w: 11, h: 7  },
+            l:  { w: 12, h: 8  },
+            xl: { w: 15, h: 8  },
+        };
+
+        let currentCaseSize = 'xl';
+        let GRID_WIDTH  = CASE_SIZES[currentCaseSize].w;
+        let GRID_HEIGHT = CASE_SIZES[currentCaseSize].h;
+
+        const CELL_SIZE = 50;
+        const GAP       = 2;
+        const PADDING   = 12;
+
+        const BASE_DENSITY_RANGES = {
+            standard:     { min: 4,  max: 10 },
+            hardcore:     { min: 11, max: 20 },
+            professional: { min: 21, max: 30 },
+        };
+        const XL_AREA = CASE_SIZES.xl.w * CASE_SIZES.xl.h; // 120
+
+        const DENSITY_FLOORS = {
+            standard:     { min: 5,  max: 8  },
+            hardcore:     { min: 8,  max: 12 },
+            professional: { min: 12, max: 16 },
+        };
+
+        function getDensityRange() {
+            const area  = GRID_WIDTH * GRID_HEIGHT;
+            const ratio = area / XL_AREA;
+            const base  = BASE_DENSITY_RANGES[currentDensity];
+            const floor = DENSITY_FLOORS[currentDensity];
+            return {
+                min: Math.max(floor.min, Math.round(base.min * ratio)),
+                max: Math.max(floor.max, Math.round(base.max * ratio)),
+            };
+        }
+
+        function toggleInfoModal() {
+            const modal = document.getElementById('info-modal');
+            const overlay = document.getElementById('info-overlay');
+            const isVisible = modal.style.display === 'block';
+            
+            modal.style.display = isVisible ? 'none' : 'block';
+            overlay.style.display = isVisible ? 'none' : 'block';
+        }
+
+        let currentX = 0;
+        let currentY = 0;
+        let heldItem = null;
+        let heldItemOrigin = null; // saved position for ESC undo
+        let grabOffsetX = 0;
+        let grabOffsetY = 0;
+        let hideTextOnSkinned = true;
+        let currentDensity = 'standard';
+
+        const ITEM_DICTIONARY = {
+            handgun:          { name: 'Handgun',           w: 3, h: 2, category: 'unique'    },
+            punisher:         { name: 'Punisher',          w: 3, h: 2, category: 'unique'    },
+            blacktail:        { name: 'Blacktail',         w: 3, h: 2, category: 'unique'    },
+            red9:             { name: 'Red9',              w: 4, h: 2, category: 'unique'    },
+            tmp:              { name: 'TMP',               w: 3, h: 2, category: 'unique'    },
+            broken_butterfly: { name: 'Broken Butterfly',  w: 4, h: 2, category: 'unique'    },
+            killer7:          { name: 'Killer7',           w: 4, h: 2, category: 'unique'    },
+            striker:          { name: 'Striker',           w: 5, h: 2, category: 'unique'    },
+            mine_thrower:     { name: 'Mine Thrower',      w: 5, h: 2, category: 'unique'    },
+            semi_auto_rifle:  { name: 'Semi-Auto Rifle',   w: 7, h: 2, category: 'unique'    },
+            shotgun:          { name: 'Shotgun',           w: 8, h: 2, category: 'unique'    },
+            auto_shotgun:     { name: 'Auto Shotgun',      w: 8, h: 2, category: 'unique'    },
+            rifle:            { name: 'Rifle',             w: 9, h: 1, category: 'unique'    },
+            first_aid:        { name: 'First Aid Spray',   w: 1, h: 2, category: 'stackable' },
+            grenade:          { name: 'Grenade',           w: 1, h: 2, category: 'stackable' },
+            flash:            { name: 'Flash Grenade',     w: 1, h: 2, category: 'stackable' },
+            incendiary:       { name: 'Incendiary',        w: 1, h: 2, category: 'stackable' },
+            herb:             { name: 'Green Herb',        w: 1, h: 2, category: 'herb'      },
+            red_herb:         { name: 'Red Herb',          w: 1, h: 2, category: 'herb'      },
+            yellow_herb:      { name: 'Yellow Herb',       w: 1, h: 2, category: 'herb'      },
+            handgun_ammo:     { name: 'Handgun Ammo',      w: 2, h: 1, category: 'stackable' },
+            shotgun_shells:   { name: 'Shotgun Shells',    w: 2, h: 1, category: 'stackable' },
+            rifle_ammo:       { name: 'Rifle Ammo',        w: 2, h: 1, category: 'stackable' },
+            tmp_ammo:         { name: 'TMP Ammo',          w: 2, h: 1, category: 'stackable' },
+            magnum_ammo:      { name: 'Magnum Ammo',       w: 2, h: 1, category: 'stackable' },
+        };
+
+        function getValidItems() {
+            return Object.keys(ITEM_DICTIONARY).filter(id => {
+                const b = ITEM_DICTIONARY[id];
+                return (b.w <= GRID_WIDTH && b.h <= GRID_HEIGHT) ||
+                       (b.h <= GRID_WIDTH && b.w <= GRID_HEIGHT);
+            });
+        }
+
+        let inventoryItems = [];
+        let uniqueIdCounter = 0;
+
+        const HERB_LETTER = { herb: 'G', red_herb: 'R', yellow_herb: 'Y' };
+        const VALID_HERB_COMBOS = new Set(['G','R','Y','GG', 'GGG', 'GR','GY','GGY','GRY']);
+
+        function getHerbComponents(item) {
+            return item.components ? [...item.components] : [HERB_LETTER[item.id]];
+        }
+        function isHerb(item) { return item.category === 'herb'; }
+        function herbComboName(components) { return `Herb (${components.join('+')})`; }
+
+        function tryHerbCombine(held, target) {
+            if (!isHerb(held) || !isHerb(target)) return null;
+            const merged = [...getHerbComponents(target), ...getHerbComponents(held)].sort();
+            const key = merged.join('');
+            if (!VALID_HERB_COMBOS.has(key)) return null;
+            let combinedW = target.w, combinedH = target.h, combinedRotation = target.rotation || 0;
+            if (target.x + combinedW > GRID_WIDTH || target.y + combinedH > GRID_HEIGHT) {
+                combinedW = target.h; combinedH = target.w;
+                combinedRotation = combinedRotation === 90 ? 0 : 90;
+            }
+            return {
+                instanceId: `mixed_${uniqueIdCounter++}`,
+                id: 'mixed_herb', name: herbComboName(merged),
+                w: combinedW, h: combinedH,
+                category: 'herb', components: merged,
+                x: target.x, y: target.y, rotation: combinedRotation,
+            };
+        }
+
+        function createItemInstance(dictionaryId) {
+            const blueprint = ITEM_DICTIONARY[dictionaryId];
+            if (!blueprint) return null;
+            return {
+                instanceId: `${dictionaryId}_${uniqueIdCounter++}`,
+                id: dictionaryId, name: blueprint.name,
+                w: blueprint.w, h: blueprint.h,
+                category: blueprint.category,
+                x: 0, y: 0, rotation: 0
+            };
+        }
+
+        function spawnItem(dictionaryId, gridX, gridY) {
+            const blueprint = ITEM_DICTIONARY[dictionaryId];
+            if (!blueprint) return;
+            if (blueprint.category === 'unique' && inventoryItems.some(i => i.id === dictionaryId)) return;
+            const item = createItemInstance(dictionaryId);
+            if (item) { item.x = gridX; item.y = gridY; inventoryItems.push(item); }
+        }
+
+        const gridContainer = document.getElementById('inventory-grid');
+
+        function buildGrid() {
+            gridContainer.querySelectorAll('.cell').forEach(c => c.remove());
+            gridContainer.querySelectorAll('.inventory-item').forEach(c => c.remove());
+
+            gridContainer.style.gridTemplateColumns = `repeat(${GRID_WIDTH}, ${CELL_SIZE}px)`;
+            gridContainer.style.gridTemplateRows    = `repeat(${GRID_HEIGHT}, ${CELL_SIZE}px)`;
+
+            for (let y = 0; y < GRID_HEIGHT; y++) {
+                for (let x = 0; x < GRID_WIDTH; x++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell', `cell-${x}-${y}`);
+                    cell.addEventListener('mouseenter', () => updateHighlight(x, y));
+                    cell.addEventListener('click',      () => handleAction(x, y));
+                    gridContainer.insertBefore(cell, document.getElementById('highlighter-overlay'));
+                }
+            }
+        }
+
+        function setCaseSize(size) {
+            if (size === currentCaseSize) return;
+
+            const stage = document.getElementById('view-stage');
+
+            stage.classList.remove('anim-in');
+            stage.classList.add('anim-out');
+
+            stage.addEventListener('animationend', function onOut() {
+                stage.removeEventListener('animationend', onOut);
+                stage.classList.remove('anim-out');
+
+                if (heldItem) { inventoryItems.push(heldItem); heldItem = null; }
+
+                currentCaseSize = size;
+                GRID_WIDTH  = CASE_SIZES[size].w;
+                GRID_HEIGHT = CASE_SIZES[size].h;
+
+                document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(`size-${size}`).classList.add('active');
+
+                inventoryItems = inventoryItems.filter(item => {
+                    const fitsNormal  = item.x + item.w <= GRID_WIDTH && item.y + item.h <= GRID_HEIGHT;
+                    const fitsRotated = item.x + item.h <= GRID_WIDTH && item.y + item.w <= GRID_HEIGHT;
+                    if (!fitsNormal && fitsRotated) {
+                        const tmp = item.w; item.w = item.h; item.h = tmp;
+                        item.rotation = (item.rotation + 90) % 360;
+                        return true;
+                    }
+                    return fitsNormal;
+                });
+
+                currentX = Math.min(currentX, GRID_WIDTH  - 1);
+                currentY = Math.min(currentY, GRID_HEIGHT - 1);
+
+                buildGrid();
+                drawInventoryFootprints();
+                updateHighlight(currentX, currentY);
+
+                stage.classList.add('anim-in');
+                stage.addEventListener('animationend', function onIn() {
+                    stage.removeEventListener('animationend', onIn);
+                    stage.classList.remove('anim-in');
+                }, { once: true });
+            }, { once: true });
+        }
+
+        function setDensity(level) {
+            currentDensity = level;
+            document.querySelectorAll('.density-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`density-${level}`).classList.add('active');
+        }
+
+        function toggleSettings() {
+            const panel = document.getElementById('settings-panel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleTextVisibility() {
+            hideTextOnSkinned = document.getElementById('toggle-hide-text').checked;
+            drawInventoryFootprints();
+            updateHighlight(currentX, currentY);
+        }
+
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('settings-panel');
+            const cog   = document.getElementById('cog-btn');
+            if (panel.style.display !== 'none' && !panel.contains(e.target) && e.target !== cog) {
+                panel.style.display = 'none';
+            }
+        });
+
+        function drawInventoryFootprints() {
+            document.querySelectorAll('.inventory-item').forEach(el => el.remove());
+            inventoryItems.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.classList.add('inventory-item');
+
+                const pixelLeft   = PADDING + item.x * (CELL_SIZE + GAP);
+                const pixelTop    = PADDING + item.y * (CELL_SIZE + GAP);
+                const pixelWidth  = item.w * CELL_SIZE + (item.w - 1) * GAP;
+                const pixelHeight = item.h * CELL_SIZE + (item.h - 1) * GAP;
+
+                itemEl.style.left   = `${pixelLeft}px`;
+                itemEl.style.top    = `${pixelTop}px`;
+                itemEl.style.width  = `${pixelWidth}px`;
+                itemEl.style.height = `${pixelHeight}px`;
+
+                const textureEl = document.createElement('div');
+                textureEl.classList.add('item-texture', 'item-' + item.id);
+                if (item.components) textureEl.classList.add('herb-' + item.components.join('').toLowerCase());
+
+                const isRotated    = (item.rotation % 180 !== 0);
+                const origW        = isRotated ? item.h : item.w;
+                const origH        = isRotated ? item.w : item.h;
+                const origPixelW   = origW * CELL_SIZE + (origW - 1) * GAP;
+                const origPixelH   = origH * CELL_SIZE + (origH - 1) * GAP;
+
+                textureEl.style.width     = `${origPixelW}px`;
+                textureEl.style.height    = `${origPixelH}px`;
+                textureEl.style.transform = `translate(-50%, -50%) translateZ(6px) rotate(${item.rotation}deg)`;
+
+                const angleRad = (item.rotation * Math.PI) / 180;
+                const shadowX  = Math.round(8 * Math.sin(angleRad));
+                const shadowY  = Math.round(8 * Math.cos(angleRad));
+                textureEl.style.filter = `drop-shadow(${shadowX}px ${shadowY}px 4px rgba(0,0,0,0.75))`;
+
+                itemEl.appendChild(textureEl);
+                gridContainer.appendChild(itemEl);
+
+                const computedBg = window.getComputedStyle(textureEl).backgroundImage;
+                textureEl.innerText = (hideTextOnSkinned && computedBg !== 'none' && computedBg !== '') ? '' : item.name;
+            });
+        }
+
+        function getItemAt(x, y) {
+            return inventoryItems.find(item =>
+                x >= item.x && x < item.x + item.w &&
+                y >= item.y && y < item.y + item.h
+            );
+        }
+
+        function scatterItemsToGrid(itemsToPack) {
+            const sorted = [...itemsToPack].sort((a, b) => (b.w * b.h) - (a.w * a.h));
+            const placedList = [];
+
+            function isAreaClear(tx, ty, tw, th) {
+                if (tx + tw > GRID_WIDTH || ty + th > GRID_HEIGHT) return false;
+                return !placedList.some(item =>
+                    tx < item.x + item.w && tx + tw > item.x &&
+                    ty < item.y + item.h && ty + th > item.y
+                );
+            }
+
+            for (let item of sorted) {
+                if (Math.random() < 0.5 && item.w !== item.h) {
+                    const tmp = item.w; item.w = item.h; item.h = tmp;
+                    item.rotation = 90;
+                }
+
+                const candidates = [];
+                for (let y = 0; y < GRID_HEIGHT; y++)
+                    for (let x = 0; x < GRID_WIDTH; x++)
+                        candidates.push([x, y]);
+                for (let i = candidates.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+                }
+
+                let placed = false;
+                for (const [x, y] of candidates) {
+                    if (isAreaClear(x, y, item.w, item.h)) {
+                        item.x = x; item.y = y; placedList.push(item); placed = true; break;
+                    }
+                    const sw = item.h, sh = item.w;
+                    if (sw !== item.w && isAreaClear(x, y, sw, sh)) {
+                        item.w = sw; item.h = sh;
+                        item.rotation = item.rotation === 90 ? 0 : 90;
+                        item.x = x; item.y = y; placedList.push(item); placed = true; break;
+                    }
+                }
+
+                if (!placed) {
+                    for (let y = 0; y < GRID_HEIGHT && !placed; y++) {
+                        for (let x = 0; x < GRID_WIDTH && !placed; x++) {
+                            if (isAreaClear(x, y, item.w, item.h)) {
+                                item.x = x; item.y = y; placedList.push(item); placed = true;
+                            } else {
+                                const sw = item.h, sh = item.w;
+                                if (isAreaClear(x, y, sw, sh)) {
+                                    item.w = sw; item.h = sh;
+                                    item.rotation = item.rotation === 90 ? 0 : 90;
+                                    item.x = x; item.y = y; placedList.push(item); placed = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return placedList;
+        }
+
+        function triggerResetLayout() {
+            if (heldItem) return;
+            const itemsToReorder = inventoryItems.map(item => {
+                const originalBlueprint = ITEM_DICTIONARY[item.id];
+                const w = originalBlueprint ? originalBlueprint.w : item.w;
+                const h = originalBlueprint ? originalBlueprint.h : item.h;
+                return { ...item, w, h, rotation: 0 };
+            });
+            inventoryItems = scatterItemsToGrid(itemsToReorder);
+            drawInventoryFootprints();
+            updateHighlight(currentX, currentY);
+        }
+
+        const GUN_CATEGORIES = {
+            pistol:    ['handgun', 'punisher', 'red9', 'blacktail'],
+            shotgun:   ['shotgun', 'auto_shotgun', 'striker'],
+            smg:       ['tmp'],
+            rifle:     ['rifle', 'semi_auto_rifle'],
+            magnum:    ['broken_butterfly', 'killer7'],
+            special:   ['mine_thrower'],
+        };
+
+        const STACKABLE_KEYS = ['handgun_ammo', 'shotgun_shells', 'tmp_ammo', 'rifle_ammo',
+                                'magnum_ammo', 'grenade', 'flash', 'incendiary',
+                                'first_aid', 'herb', 'red_herb', 'yellow_herb'];
+
+        function rollGunCount() {
+            const r = Math.random();
+            if (r < 0.07) return 3;   // 7% chance of 3
+            if (r < 0.25) return 2;   // 18% chance of 2
+            return 1;                  // 75% chance of 1
+        }
+
+        function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        const GUN_AMMO = {
+            handgun:          'handgun_ammo',
+            punisher:         'handgun_ammo',
+            red9:             'handgun_ammo',
+            blacktail:        'handgun_ammo',
+            tmp:              'tmp_ammo',
+            shotgun:          'shotgun_shells',
+            auto_shotgun:     'shotgun_shells',
+            striker:          'shotgun_shells',
+            rifle:            'rifle_ammo',
+            semi_auto_rifle:  'rifle_ammo',
+            broken_butterfly: 'magnum_ammo',
+            killer7:          'magnum_ammo',
+
+        };
+
+        const AMMO_KEYS = new Set(['handgun_ammo', 'shotgun_shells', 'tmp_ammo', 'rifle_ammo', 'magnum_ammo']);
+
+
+
+
+
+        function weightedPickStackable(preferred, all) {
+            const weighted = [];
+            for (const id of all) {
+                if (id === 'magnum_ammo' && !preferred.has(id)) continue; // never if no magnum
+                let w;
+                if (id === 'magnum_ammo' && preferred.has(id)) w = 2;
+                else if (preferred.has(id)) w = 4;
+                else if (AMMO_KEYS.has(id)) w = 1;  // unrelated ammo: low
+                else w = 3;                          // herbs, grenades, first aid: normal
+                for (let i = 0; i < w; i++) weighted.push(id);
+            }
+            return weighted[Math.floor(Math.random() * weighted.length)];
+        }
+
+        function triggerRandomSpawn() {
+            if (heldItem) return;
+
+            const range = getDensityRange();
+            const totalBudget = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+
+            const scaledBudget = Math.round(totalBudget * 1.6);
+            const gunBudget = Math.max(1, Math.round(scaledBudget * (0.1 + Math.random() * 0.1)));
+            const stackableBudget = scaledBudget - gunBudget;
+
+            const poolToGenerate = [];
+            const validGunIds = new Set(getValidItems().filter(id => ITEM_DICTIONARY[id].category === 'unique'));
+
+            const chosenGuns = new Set(['handgun']);
+            const handgunInst = createItemInstance('handgun');
+            if (handgunInst) poolToGenerate.push(handgunInst);
+
+            const catKeys = Object.keys(GUN_CATEGORIES).sort(() => Math.random() - 0.5);
+
+            for (const cat of catKeys) {
+                if (poolToGenerate.length >= gunBudget) break;
+                const eligible = GUN_CATEGORIES[cat].filter(id => validGunIds.has(id));
+                if (eligible.length === 0) continue;
+
+                const count = Math.min(rollGunCount(), eligible.length, gunBudget - poolToGenerate.length);
+                const shuffled = [...eligible].sort(() => Math.random() - 0.5);
+                for (let i = 0; i < count; i++) {
+                    const id = shuffled[i];
+                    if (!chosenGuns.has(id)) {
+                        chosenGuns.add(id);
+                        const inst = createItemInstance(id);
+                        if (inst) poolToGenerate.push(inst);
+                    }
+                }
+            }
+
+            const preferredAmmo = new Set();
+            for (const gunId of chosenGuns) {
+                const ammo = GUN_AMMO[gunId];
+                if (ammo) preferredAmmo.add(ammo);
+            }
+
+            const validStackables = STACKABLE_KEYS.filter(id => {
+                const b = ITEM_DICTIONARY[id];
+                return b && ((b.w <= GRID_WIDTH && b.h <= GRID_HEIGHT) || (b.h <= GRID_WIDTH && b.w <= GRID_HEIGHT));
+            });
+
+            const stackableTarget = poolToGenerate.length + stackableBudget;
+            let fillAttempts = 0;
+            while (poolToGenerate.length < stackableTarget && validStackables.length > 0 && fillAttempts < stackableBudget * 10) {
+                fillAttempts++;
+                const id = weightedPickStackable(preferredAmmo, validStackables);
+                const inst = createItemInstance(id);
+                if (inst) poolToGenerate.push(inst);
+            }
+
+            inventoryItems = scatterItemsToGrid(poolToGenerate);
+            drawInventoryFootprints();
+            updateHighlight(currentX, currentY);
+        }
+
+                function moveSelection(dirX, dirY) {
+            let nextX = currentX, nextY = currentY;
+            if (!heldItem) {
+                const hoveredItem = getItemAt(currentX, currentY);
+                if (hoveredItem) {
+                    if (dirX !== 0) nextX = dirX > 0 ? hoveredItem.x + hoveredItem.w : hoveredItem.x - 1;
+                    if (dirY !== 0) nextY = dirY > 0 ? hoveredItem.y + hoveredItem.h : hoveredItem.y - 1;
+                } else {
+                    nextX += dirX; nextY += dirY;
+                }
+            } else {
+                nextX += dirX; nextY += dirY;
+            }
+            updateHighlight(nextX, nextY);
+        }
+
+        function checkPlacementStatus(item, targetX, targetY) {
+            if (targetX + item.w > GRID_WIDTH || targetY + item.h > GRID_HEIGHT) return { valid: false, overlaps: [] };
+            let overlaps = [];
+            for (let hY = 0; hY < item.h; hY++) {
+                for (let hX = 0; hX < item.w; hX++) {
+                    const foundItem = getItemAt(targetX + hX, targetY + hY);
+                    if (foundItem && foundItem.instanceId !== item.instanceId) {
+                        if (!overlaps.some(o => o.instanceId === foundItem.instanceId)) overlaps.push(foundItem);
+                    }
+                }
+            }
+            return { valid: overlaps.length <= 1, overlaps };
+        }
+
+        function updateHighlight(newX, newY) {
+            const coordinatesChanged = (newX !== currentX || newY !== currentY);
+            currentX = Math.max(0, Math.min(newX, GRID_WIDTH  - 1));
+            currentY = Math.max(0, Math.min(newY, GRID_HEIGHT - 1));
+
+            if (coordinatesChanged) playSFX(heldItem ? sfxMoveHeld : sfxMove);
+
+            const overlay = document.getElementById('highlighter-overlay');
+            overlay.className = '';
+            const oldTexture = overlay.querySelector('.item-texture');
+            if (oldTexture) oldTexture.remove();
+
+            let targetX = currentX, targetY = currentY, targetW = 1, targetH = 1;
+
+            if (heldItem) {
+                targetW = heldItem.w; targetH = heldItem.h;
+                targetX = Math.max(0, Math.min(currentX - grabOffsetX, GRID_WIDTH  - targetW));
+                targetY = Math.max(0, Math.min(currentY - grabOffsetY, GRID_HEIGHT - targetH));
+
+                const status = checkPlacementStatus(heldItem, targetX, targetY);
+                overlay.classList.add(status.valid ? 'hl-holding' : 'hl-invalid');
+
+                const textureEl = document.createElement('div');
+                textureEl.classList.add('item-texture', 'item-' + heldItem.id);
+                if (heldItem.components) textureEl.classList.add('herb-' + heldItem.components.join('').toLowerCase());
+
+                const isRotated  = (heldItem.rotation % 180 !== 0);
+                const origW      = isRotated ? heldItem.h : heldItem.w;
+                const origH      = isRotated ? heldItem.w : heldItem.h;
+                const origPixelW = origW * CELL_SIZE + (origW - 1) * GAP;
+                const origPixelH = origH * CELL_SIZE + (origH - 1) * GAP;
+
+                textureEl.style.width     = `${origPixelW}px`;
+                textureEl.style.height    = `${origPixelH}px`;
+                textureEl.style.transform = `translate(-50%, -50%) translateZ(20px) rotate(${heldItem.rotation}deg)`;
+
+                const angleRad = (heldItem.rotation * Math.PI) / 180;
+                const shadowX  = Math.round(18 * Math.sin(angleRad));
+                const shadowY  = Math.round(18 * Math.cos(angleRad));
+                textureEl.style.filter = `drop-shadow(${shadowX}px ${shadowY}px 8px rgba(0,0,0,0.6))`;
+
+                overlay.appendChild(textureEl);
+
+                const computedBg = window.getComputedStyle(textureEl).backgroundImage;
+                textureEl.innerText = (hideTextOnSkinned && computedBg !== 'none' && computedBg !== '') ? '' : heldItem.name;
+            } else {
+                const hoveredItem = getItemAt(currentX, currentY);
+                if (hoveredItem) {
+                    targetX = hoveredItem.x; targetY = hoveredItem.y;
+                    targetW = hoveredItem.w; targetH = hoveredItem.h;
+                    overlay.classList.add('hl-item');
+                } else {
+                    overlay.classList.add('hl-empty');
+                }
+            }
+
+            overlay.style.left   = `${PADDING + targetX * (CELL_SIZE + GAP)}px`;
+            overlay.style.top    = `${PADDING + targetY * (CELL_SIZE + GAP)}px`;
+            overlay.style.width  = `${targetW * CELL_SIZE + (targetW - 1) * GAP}px`;
+            overlay.style.height = `${targetH * CELL_SIZE + (targetH - 1) * GAP}px`;
+        }
+
+        function handleAction(actionX, actionY) {
+            if (heldItem) {
+                let placeX = Math.max(0, Math.min(currentX - grabOffsetX, GRID_WIDTH  - heldItem.w));
+                let placeY = Math.max(0, Math.min(currentY - grabOffsetY, GRID_HEIGHT - heldItem.h));
+
+                const status = checkPlacementStatus(heldItem, placeX, placeY);
+                if (!status.valid) { playSFX(sfxFail); return; }
+
+                if (status.overlaps.length === 1 && isHerb(heldItem) && isHerb(status.overlaps[0])) {
+                    const target   = status.overlaps[0];
+                    const combined = tryHerbCombine(heldItem, target);
+                    if (combined) {
+                        inventoryItems = inventoryItems.filter(i => i.instanceId !== target.instanceId);
+                        inventoryItems.push(combined);
+                        heldItem = null;
+                        playSFX(sfxPlace);
+                        drawInventoryFootprints();
+                        updateHighlight(actionX, actionY);
+                        return;
+                    }
+
+                }
+
+                if (status.overlaps.length === 0) {
+                    heldItem.x = placeX; heldItem.y = placeY;
+                    inventoryItems.push(heldItem);
+                    heldItem = null; heldItemOrigin = null;
+                    playSFX(sfxPlace);
+                } else if (status.overlaps.length === 1) {
+                    const itemToSwapOut = status.overlaps[0];
+
+                    const displacedOrigin = { x: itemToSwapOut.x, y: itemToSwapOut.y, w: itemToSwapOut.w, h: itemToSwapOut.h, rotation: itemToSwapOut.rotation };
+                    inventoryItems = inventoryItems.filter(i => i.instanceId !== itemToSwapOut.instanceId);
+                    const justPlaced = heldItem;
+                    justPlaced.x = placeX; justPlaced.y = placeY;
+                    inventoryItems.push(justPlaced);
+
+                    heldItemOrigin = { isSwap: true, placedItem: justPlaced, displacedOrigin };
+                    heldItem = itemToSwapOut;
+                    grabOffsetX = Math.max(0, Math.min(actionX - heldItem.x, heldItem.w - 1));
+                    grabOffsetY = Math.max(0, Math.min(actionY - heldItem.y, heldItem.h - 1));
+                    playSFX(sfxPlace);
+                }
+            } else {
+                const itemToPick = getItemAt(actionX, actionY);
+                if (itemToPick) {
+                    heldItem       = itemToPick;
+                    heldItemOrigin = { x: itemToPick.x, y: itemToPick.y, w: itemToPick.w, h: itemToPick.h, rotation: itemToPick.rotation };
+                    grabOffsetX    = actionX - itemToPick.x;
+                    grabOffsetY    = actionY - itemToPick.y;
+                    inventoryItems = inventoryItems.filter(i => i.instanceId !== itemToPick.instanceId);
+                    playSFX(sfxPick);
+                }
+            }
+            drawInventoryFootprints();
+            updateHighlight(actionX, actionY);
+        }
+
+        function rotateHeldItem() {
+            if (!heldItem) return;
+            playSFX(sfxRotate);
+            const tempW = heldItem.w; heldItem.w = heldItem.h; heldItem.h = tempW;
+            heldItem.rotation = (heldItem.rotation + 90) % 360;
+            grabOffsetX = Math.floor((heldItem.w - 1) / 2);
+            grabOffsetY = Math.floor((heldItem.h - 1) / 2);
+            updateHighlight(currentX, currentY);
+        }
+
+        function cancelHeldItem() {
+            if (!heldItem || !heldItemOrigin) return;
+
+            if (heldItemOrigin.isSwap) {
+
+                const { placedItem, displacedOrigin } = heldItemOrigin;
+
+                heldItem.x        = displacedOrigin.x;
+                heldItem.y        = displacedOrigin.y;
+                heldItem.w        = displacedOrigin.w;
+                heldItem.h        = displacedOrigin.h;
+                heldItem.rotation = displacedOrigin.rotation;
+                inventoryItems.push(heldItem);
+
+                inventoryItems = inventoryItems.filter(i => i.instanceId !== placedItem.instanceId);
+                heldItem = placedItem;
+                heldItemOrigin = null;
+            } else {
+
+                heldItem.x        = heldItemOrigin.x;
+                heldItem.y        = heldItemOrigin.y;
+                heldItem.w        = heldItemOrigin.w;
+                heldItem.h        = heldItemOrigin.h;
+                heldItem.rotation = heldItemOrigin.rotation;
+                inventoryItems.push(heldItem);
+                heldItem = null; heldItemOrigin = null;
+            }
+
+            playSFX(sfxPlace);
+            drawInventoryFootprints();
+            updateHighlight(currentX, currentY);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (document.activeElement && document.activeElement.tagName === 'BUTTON') document.activeElement.blur();
+            switch(e.key.toLowerCase()) {
+                case 'arrowup':    case 'w': e.preventDefault(); moveSelection(0, -1);  break;
+                case 'arrowdown':  case 's': e.preventDefault(); moveSelection(0,  1);  break;
+                case 'arrowleft':  case 'a': e.preventDefault(); moveSelection(-1, 0);  break;
+                case 'arrowright': case 'd': e.preventDefault(); moveSelection( 1, 0);  break;
+                case ' ': case 'spacebar':   e.preventDefault(); handleAction(currentX, currentY); break;
+                case 'r':                    e.preventDefault(); rotateHeldItem(); break;
+                case 'escape':               e.preventDefault(); cancelHeldItem(); break;
+            }
+        });
+
+        window.addEventListener('wheel', (e) => {
+            if (heldItem) {
+                e.preventDefault(); 
+                rotateHeldItem();   
+            }
+        }, { passive: false }); 
+
+        buildGrid();
+
+        spawnItem('auto_shotgun',  0, 0);
+        spawnItem('semi_auto_rifle', 0, 2);
+        spawnItem('handgun',       0, 4);
+        spawnItem('shotgun_shells', 0, 6);
+        spawnItem('shotgun_shells', 2, 6);
+        spawnItem('herb',          7, 6);
+        spawnItem('red_herb',      5, 6);
+        spawnItem('yellow_herb',   6, 6);
+
+        drawInventoryFootprints();
+        updateHighlight(0, 0);
+    </script>
+</body>
+</html>
