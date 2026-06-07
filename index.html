@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RE4 Inventory</title>
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
     <style>
         body {
             margin: 0;
@@ -353,11 +354,11 @@
 <body>
 
     <div id="control-panel">
-        <button class="btn icon-btn" onclick="triggerResetLayout()" data-tooltip="Reshuffle" style="padding:8px 12px; font-size:15px;">↺</button>
-        <button class="btn icon-btn" onclick="triggerRandomSpawn()" data-tooltip="Randomize" style="padding:8px 12px; font-size:15px;">🎲</button>
+        <button class="btn icon-btn" id="reshuffle-btn" onmouseenter="playSFX(sfxMoveHeld)" onclick="triggerResetLayout()" data-tooltip="Reshuffle (3 left)" style="padding:8px 12px; font-size:15px;">↺</button>
+        <button class="btn icon-btn" onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPick); triggerRandomSpawn();" data-tooltip="Randomize" style="padding:8px 12px; font-size:15px;">🎲</button>
         
         <div style="position:relative;">
-            <button class="btn icon-btn" id="cog-btn" onclick="toggleSettings()" data-tooltip="Settings" style="padding:8px 12px; font-size:15px;">⚙</button>
+            <button class="btn icon-btn" id="cog-btn" onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPick); toggleSettings();" data-tooltip="Settings" style="padding:8px 12px; font-size:15px;">⚙</button>
             <div id="settings-panel" style="
                 display:none;
                 position:absolute;
@@ -369,26 +370,26 @@
                 white-space:nowrap;
                 box-shadow:0 8px 24px rgba(0,0,0,0.7);
             ">
-                
+                <!-- DIFFICULTY -->
                 <div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#888; margin-bottom:10px;">Difficulty</div>
                 <div style="display:flex; flex-direction:column; gap:4px;">
-                    <button class="btn density-btn active" id="density-standard"     onclick="setDensity('standard')"     style="text-align:left; border-color:#555;">Standard</button>
-                    <button class="btn density-btn"        id="density-hardcore"     onclick="setDensity('hardcore')"     style="text-align:left;">Hardcore</button>
-                    <button class="btn density-btn"        id="density-professional" onclick="setDensity('professional')" style="text-align:left;">Professional</button>
+                    <button class="btn density-btn active" id="density-standard"     onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPick); setDensity('standard')"     style="text-align:left; border-color:#555;">Standard</button>
+                    <button class="btn density-btn"        id="density-hardcore"     onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPick); setDensity('hardcore')"     style="text-align:left;">Hardcore</button>
+                    <button class="btn density-btn"        id="density-professional" onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPick); setDensity('professional')" style="text-align:left;">Professional</button>
                 </div>
 
-                
+                <!-- CASE SIZE -->
                 <div style="border-top: 1px solid #444; margin-top: 12px; padding-top: 10px;">
                     <div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#888; margin-bottom:10px;">Case Size</div>
                     <div style="display:flex; flex-direction:column; gap:4px;">
-                        <button class="btn size-btn"        id="size-s"  onclick="setCaseSize('s')"  style="text-align:left;">S &nbsp;<span style="color:#666; font-size:10px;">6 × 10</span></button>
-                        <button class="btn size-btn"        id="size-m"  onclick="setCaseSize('m')"  style="text-align:left;">M &nbsp;<span style="color:#666; font-size:10px;">7 × 11</span></button>
-                        <button class="btn size-btn"        id="size-l"  onclick="setCaseSize('l')"  style="text-align:left;">L &nbsp;<span style="color:#666; font-size:10px;">8 × 12</span></button>
-                        <button class="btn size-btn active" id="size-xl" onclick="setCaseSize('xl')" style="text-align:left; border-color:#555;">XL &nbsp;<span style="color:#666; font-size:10px;">8 × 15</span></button>
+                        <button class="btn size-btn active" id="size-s"  onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPlace); setCaseSize('s')"  style="text-align:left; border-color:#555;">S &nbsp;<span style="color:#666; font-size:10px;">6 × 10</span></button>
+                        <button class="btn size-btn"        id="size-m"  onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPlace); setCaseSize('m')"  style="text-align:left;">M &nbsp;<span style="color:#666; font-size:10px;">7 × 11</span></button>
+                        <button class="btn size-btn"        id="size-l"  onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPlace); setCaseSize('l')"  style="text-align:left;">L &nbsp;<span style="color:#666; font-size:10px;">8 × 12</span></button>
+                        <button class="btn size-btn"        id="size-xl" onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPlace); setCaseSize('xl')" style="text-align:left;">XL &nbsp;<span style="color:#666; font-size:10px;">8 × 15</span></button>
                     </div>
                 </div>
 
-                
+                <!-- HIDE TEXT -->
                 <div style="border-top: 1px solid #444; margin-top: 12px; padding-top: 10px; display: flex; align-items: center;">
                     <label style="font-size: 11px; color: #aaa; display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
                         <input type="checkbox" id="toggle-hide-text" checked onchange="toggleTextVisibility()" style="cursor: pointer; accent-color: #FFD700;">
@@ -405,7 +406,7 @@
         </div>
     </div>
 
-    <button id="info-btn" class="btn" onclick="toggleInfoModal()">?</button>
+    <button id="info-btn" class="btn" onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPick); toggleInfoModal();">?</button>
 
     <div id="music-container">
         <span style="font-size: 13px; cursor: default; user-select: none;">🎵</span>
@@ -429,7 +430,6 @@
     <audio id="bg-music" src="serenity.mp3" loop></audio>
 
     <script>
-
         const sfxStart    = new Audio('audio/sfx_start.wav');
         const sfxMove     = new Audio('audio/sfx_move.wav');
         const sfxMoveHeld = new Audio('audio/sfx_move_held.wav');
@@ -437,6 +437,7 @@
         const sfxPlace    = new Audio('audio/sfx_place.wav');
         const sfxRotate   = new Audio('audio/sfx_rotate.wav');
         const sfxFail     = new Audio('audio/sfx_fail.wav');
+        const sfxHerb     = new Audio('audio/sfx_herb.wav');
         const bgMusic     = document.getElementById('bg-music');
 
         function playSFX(audio) {
@@ -454,12 +455,14 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => { 
-            playSFX(sfxStart); 
+            playSFX(sfxStart);
             if (bgMusic) {
                 const slider = document.getElementById('volume-slider');
                 bgMusic.volume = slider ? slider.value : 0.3;
                 bgMusic.play().catch(e => console.log("Autoplay blocked. Click window context to start background track."));
             }
+            updateReshuffleBtn();
+            triggerRandomSpawn();
         });
 
         window.addEventListener('click', () => {
@@ -475,7 +478,7 @@
             xl: { w: 15, h: 8  },
         };
 
-        let currentCaseSize = 'xl';
+        let currentCaseSize = 's';
         let GRID_WIDTH  = CASE_SIZES[currentCaseSize].w;
         let GRID_HEIGHT = CASE_SIZES[currentCaseSize].h;
 
@@ -814,8 +817,21 @@
             return placedList;
         }
 
+        let reshuffleCount = 0;
+        const MAX_RESHUFFLES = 3;
+
+        function updateReshuffleBtn() {
+            const btn = document.getElementById('reshuffle-btn');
+            if (!btn) return;
+            const remaining = MAX_RESHUFFLES - reshuffleCount;
+            btn.setAttribute('data-tooltip', remaining > 0 ? `Reshuffle (${remaining} left)` : 'No reshuffles left');
+            btn.style.opacity = remaining > 0 ? '1' : '0.35';
+            btn.style.cursor  = remaining > 0 ? 'pointer' : 'not-allowed';
+        }
+
         function triggerResetLayout() {
-            if (heldItem) return;
+            if (reshuffleCount >= MAX_RESHUFFLES) return;
+            if (heldItem) { inventoryItems.push(heldItem); heldItem = null; heldItemOrigin = null; }
             const itemsToReorder = inventoryItems.map(item => {
                 const originalBlueprint = ITEM_DICTIONARY[item.id];
                 const w = originalBlueprint ? originalBlueprint.w : item.w;
@@ -823,6 +839,9 @@
                 return { ...item, w, h, rotation: 0 };
             });
             inventoryItems = scatterItemsToGrid(itemsToReorder);
+            reshuffleCount++;
+            updateReshuffleBtn();
+            playSFX(sfxRotate);
             drawInventoryFootprints();
             updateHighlight(currentX, currentY);
         }
@@ -862,14 +881,9 @@
             semi_auto_rifle:  'rifle_ammo',
             broken_butterfly: 'magnum_ammo',
             killer7:          'magnum_ammo',
-
         };
 
         const AMMO_KEYS = new Set(['handgun_ammo', 'shotgun_shells', 'tmp_ammo', 'rifle_ammo', 'magnum_ammo']);
-
-
-
-
 
         function weightedPickStackable(preferred, all) {
             const weighted = [];
@@ -886,7 +900,9 @@
         }
 
         function triggerRandomSpawn() {
-            if (heldItem) return;
+            if (heldItem) { heldItem = null; heldItemOrigin = null; }
+            reshuffleCount = 0;
+            updateReshuffleBtn();
 
             const range = getDensityRange();
             const totalBudget = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -1053,12 +1069,11 @@
                         inventoryItems = inventoryItems.filter(i => i.instanceId !== target.instanceId);
                         inventoryItems.push(combined);
                         heldItem = null;
-                        playSFX(sfxPlace);
+                        playSFX(sfxHerb);
                         drawInventoryFootprints();
                         updateHighlight(actionX, actionY);
                         return;
                     }
-
                 }
 
                 if (status.overlaps.length === 0) {
@@ -1068,13 +1083,11 @@
                     playSFX(sfxPlace);
                 } else if (status.overlaps.length === 1) {
                     const itemToSwapOut = status.overlaps[0];
-
                     const displacedOrigin = { x: itemToSwapOut.x, y: itemToSwapOut.y, w: itemToSwapOut.w, h: itemToSwapOut.h, rotation: itemToSwapOut.rotation };
                     inventoryItems = inventoryItems.filter(i => i.instanceId !== itemToSwapOut.instanceId);
                     const justPlaced = heldItem;
                     justPlaced.x = placeX; justPlaced.y = placeY;
                     inventoryItems.push(justPlaced);
-
                     heldItemOrigin = { isSwap: true, placedItem: justPlaced, displacedOrigin };
                     heldItem = itemToSwapOut;
                     grabOffsetX = Math.max(0, Math.min(actionX - heldItem.x, heldItem.w - 1));
@@ -1110,21 +1123,17 @@
             if (!heldItem || !heldItemOrigin) return;
 
             if (heldItemOrigin.isSwap) {
-
                 const { placedItem, displacedOrigin } = heldItemOrigin;
-
                 heldItem.x        = displacedOrigin.x;
                 heldItem.y        = displacedOrigin.y;
                 heldItem.w        = displacedOrigin.w;
                 heldItem.h        = displacedOrigin.h;
                 heldItem.rotation = displacedOrigin.rotation;
                 inventoryItems.push(heldItem);
-
                 inventoryItems = inventoryItems.filter(i => i.instanceId !== placedItem.instanceId);
                 heldItem = placedItem;
                 heldItemOrigin = null;
             } else {
-
                 heldItem.x        = heldItemOrigin.x;
                 heldItem.y        = heldItemOrigin.y;
                 heldItem.w        = heldItemOrigin.w;
