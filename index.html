@@ -141,6 +141,11 @@
         .item-flash { background-image: url('images/flash.png'); }
         .item-incendiary { background-image: url('images/incendiary.png'); }
         .item-first_aid { background-image: url('images/firstaidspray.png'); }
+        .item-egg { background-image: url('images/egg.png'); }
+        .item-brown_egg { background-image: url('images/brown_egg.png'); }
+        .item-golden_egg { background-image: url('images/golden_egg.png'); }
+        .item-bass { background-image: url('images/bass.png'); }
+        .item-large_bass { background-image: url('images/bass.png'); }
         .herb-gr { background-image: url('images/mixed_gr.png'); }
         .herb-gg { background-image: url('images/mixed_gg.png'); }
         .herb-gy { background-image: url('images/mixed_gy.png'); }
@@ -554,6 +559,11 @@
             rifle_ammo:       { name: 'Rifle Ammo',        w: 2, h: 1, category: 'stackable' },
             tmp_ammo:         { name: 'TMP Ammo',          w: 2, h: 1, category: 'stackable' },
             magnum_ammo:      { name: 'Magnum Ammo',       w: 2, h: 1, category: 'stackable' },
+            egg:              { name: 'Egg',               w: 1, h: 1, category: 'stackable' },
+            brown_egg:        { name: 'Brown Egg',         w: 1, h: 1, category: 'stackable' },
+            golden_egg:       { name: 'Golden Egg',        w: 1, h: 1, category: 'stackable' },
+            bass:             { name: 'Bass',              w: 3, h: 1, category: 'stackable' },
+            large_bass:       { name: 'Large Bass',        w: 6, h: 2, category: 'stackable' },
         };
 
         function getValidItems() {
@@ -857,8 +867,10 @@
 
         const STACKABLE_KEYS = ['handgun_ammo', 'shotgun_shells', 'tmp_ammo', 'rifle_ammo',
                                 'magnum_ammo', 'grenade', 'flash', 'incendiary',
-                                'first_aid', 'herb', 'red_herb', 'yellow_herb'];
-
+                                'first_aid', 'herb', 'red_herb', 'yellow_herb', 
+                                'egg', 'brown_egg', 'golden_egg', 'bass', 
+                                'large_bass'];
+        
         function rollGunCount() {
             const r = Math.random();
             if (r < 0.07) return 3;   // 7% chance of 3
@@ -887,18 +899,38 @@
 
         function weightedPickStackable(preferred, all) {
             const weighted = [];
+        
             for (const id of all) {
-                if (id === 'magnum_ammo' && !preferred.has(id)) continue; // never if no magnum
+                if (id === 'magnum_ammo' && !preferred.has(id)) continue;
+        
                 let w;
-                if (id === 'magnum_ammo' && preferred.has(id)) w = 2;
-                else if (preferred.has(id)) w = 4;
-                else if (AMMO_KEYS.has(id)) w = 1;  // unrelated ammo: low
-                else w = 3;                          // herbs, grenades, first aid: normal
+        
+                if (id === 'golden_egg') {
+                    w = 1;
+                } else if (id === 'brown_egg') {
+                    w = 2;
+                } else if (id === 'egg') {
+                    w = 3;
+                } else if (id === 'large_bass') {
+                    w = 1;
+                } else if (id === 'bass') {
+                    w = 3;
+                } else if (id === 'magnum_ammo' && preferred.has(id)) {
+                    w = 2;
+                } else if (preferred.has(id)) {
+                    w = 4;
+                } else if (AMMO_KEYS.has(id)) {
+                    w = 1;
+                } else {
+                    w = 3;
+                }
+        
                 for (let i = 0; i < w; i++) weighted.push(id);
             }
+        
             return weighted[Math.floor(Math.random() * weighted.length)];
         }
-
+        
         function triggerRandomSpawn() {
             if (heldItem) { heldItem = null; heldItemOrigin = null; }
             reshuffleCount = 0;
@@ -953,8 +985,35 @@
             while (poolToGenerate.length < stackableTarget && validStackables.length > 0 && fillAttempts < stackableBudget * 10) {
                 fillAttempts++;
                 const id = weightedPickStackable(preferredAmmo, validStackables);
-                const inst = createItemInstance(id);
-                if (inst) poolToGenerate.push(inst);
+
+                let amount = 1;
+                
+                switch (id) {
+                    case 'egg':
+                        amount = 3 + Math.floor(Math.random() * 4); // 3-6
+                        break;
+                
+                    case 'brown_egg':
+                        amount = 2 + Math.floor(Math.random() * 3); // 2-4
+                        break;
+                
+                    case 'golden_egg':
+                        amount = 1;
+                        break;
+                
+                    case 'bass':
+                        amount = 2 + Math.floor(Math.random() * 3); // 2-4
+                        break;
+                
+                    case 'large_bass':
+                        amount = 1;
+                        break;
+                }
+                
+                for (let i = 0; i < amount; i++) {
+                    const inst = createItemInstance(id);
+                    if (inst) poolToGenerate.push(inst);
+                }
             }
 
             inventoryItems = scatterItemsToGrid(poolToGenerate);
