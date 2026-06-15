@@ -354,7 +354,53 @@
             cursor: pointer;
             box-shadow: 0 0 4px rgba(0,0,0,0.5);
         }
-    </style>
+    
+.custom-case-box{
+background:linear-gradient(180deg,#242424 0%,#151515 100%);
+border:1px solid #555;
+padding:10px;
+margin-top:8px;
+}
+.custom-slider{
+-webkit-appearance:none;
+appearance:none;
+width:100%;
+height:6px;
+background:#222;
+border:1px solid #555;
+border-radius:4px;
+}
+.custom-slider::-webkit-slider-thumb{
+-webkit-appearance:none;
+width:14px;
+height:14px;
+border-radius:50%;
+background:#FFD700;
+cursor:pointer;
+}
+.case-stats{
+margin-top:10px;
+font-size:11px;
+color:#d0d0d0;
+line-height:1.6;
+border-top:1px solid #444;
+padding-top:8px;
+}
+.custom-active{
+color:#FFD700;
+text-shadow:0 0 6px rgba(255,215,0,.4);
+}
+
+
+.segmented-case-row{display:flex;gap:4px;margin-bottom:10px}
+.segmented-case-row .size-btn{
+flex:1;
+padding:8px 0;
+text-align:center!important;
+min-width:42px;
+}
+
+</style>
 </head>
 <body>
 
@@ -385,13 +431,31 @@
 
                 <!-- CASE SIZE -->
                 <div style="border-top: 1px solid #444; margin-top: 12px; padding-top: 10px;">
-                    <div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#888; margin-bottom:10px;">Case Size</div>
-                    <div style="display:flex; flex-direction:column; gap:4px;">
-                        <button class="btn size-btn active" id="size-s"  onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPlace); setCaseSize('s')"  style="text-align:left; border-color:#555;">S &nbsp;<span style="color:#666; font-size:10px;">6 × 10</span></button>
-                        <button class="btn size-btn"        id="size-m"  onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPlace); setCaseSize('m')"  style="text-align:left;">M &nbsp;<span style="color:#666; font-size:10px;">7 × 11</span></button>
-                        <button class="btn size-btn"        id="size-l"  onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPlace); setCaseSize('l')"  style="text-align:left;">L &nbsp;<span style="color:#666; font-size:10px;">8 × 12</span></button>
-                        <button class="btn size-btn"        id="size-xl" onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPlace); setCaseSize('xl')" style="text-align:left;">XL &nbsp;<span style="color:#666; font-size:10px;">8 × 15</span></button>
+                    <div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#888; margin-bottom:10px;">Case Sizes</div>
+                    <div class="segmented-case-row">
+                        <button class="btn size-btn active" id="size-s" onclick="playSFX(sfxPlace); setCaseSize('s')">S</button>
+                        <button class="btn size-btn" id="size-m" onclick="playSFX(sfxPlace); setCaseSize('m')">M</button>
+                        <button class="btn size-btn" id="size-l" onclick="playSFX(sfxPlace); setCaseSize('l')">L</button>
+                        <button class="btn size-btn" id="size-xl" onclick="playSFX(sfxPlace); setCaseSize('xl')">XL</button>
                     </div>
+
+                    <div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#888; margin:12px 0 10px 0;">Custom Case</div>
+<div class="custom-case-box">
+<div id="custom-active-label" style="font-size:11px;color:#FFD700;font-weight:bold;margin-bottom:8px;"></div>
+
+                    <div style="font-size:11px;color:#aaa;">Width: <span id="width-value">15</span></div>
+                    <input id="width-slider" class="custom-slider" type="range" min="8" max="20" value="15" style="width:100%;" oninput="document.getElementById('width-value').textContent=this.value">
+
+                    <div style="font-size:11px;color:#aaa;margin-top:8px;">Height: <span id="height-value">8</span></div>
+                    <input id="height-slider" class="custom-slider" type="range" min="6" max="15" value="8" style="width:100%;" oninput="document.getElementById('height-value').textContent=this.value">
+
+                    
+<div class="case-stats">
+<div>Capacity: <span id="capacity-value">120</span> slots</div>
+<div>Size: <span id="size-display">15 × 8</span></div>
+</div>
+</div>
+
                 </div>
 
                 <!-- HIDE TEXT -->
@@ -399,6 +463,13 @@
                     <label style="font-size: 11px; color: #aaa; display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
                         <input type="checkbox" id="toggle-hide-text" checked onchange="toggleTextVisibility()" style="cursor: pointer; accent-color: #FFD700;">
                         Hide Text on Images
+                    </label>
+                </div>
+
+                <div style="border-top: 1px solid #444; margin-top: 12px; padding-top: 10px; display: flex; align-items: center;">
+                    <label style="font-size: 11px; color: #aaa; display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="toggle-food" checked onchange="toggleFoodItems()" style="cursor: pointer; accent-color: #FFD700;">
+                        Enable Food Items
                     </label>
                 </div>
             </div>
@@ -466,6 +537,16 @@
                 bgMusic.volume = slider ? slider.value : 0.3;
                 bgMusic.play().catch(e => console.log("Autoplay blocked. Click window context to start background track."));
             }
+
+            const widthSlider = document.getElementById('width-slider');
+            const heightSlider = document.getElementById('height-slider');
+
+            if (widthSlider && heightSlider) {
+                syncCustomCaseLabels(); updateCaseStats();
+                widthSlider.addEventListener('input', () => applyCustomCase(true));
+                heightSlider.addEventListener('input', () => applyCustomCase(true));
+            }
+
             updateReshuffleBtn();
             triggerRandomSpawn();
         });
@@ -481,9 +562,13 @@
             m:  { w: 11, h: 7  },
             l:  { w: 12, h: 8  },
             xl: { w: 15, h: 8  },
+            xxl: { w: 15, h: 10 },
+            xxxl: { w: 18, h: 12 },
         };
 
         let currentCaseSize = 's';
+        let customCase = { w:15, h:8 };
+        CASE_SIZES.custom = { w: customCase.w, h: customCase.h };
         let GRID_WIDTH  = CASE_SIZES[currentCaseSize].w;
         let GRID_HEIGHT = CASE_SIZES[currentCaseSize].h;
 
@@ -496,7 +581,7 @@
             hardcore:     { min: 11, max: 20 },
             professional: { min: 21, max: 30 },
         };
-        const XL_AREA = CASE_SIZES.xl.w * CASE_SIZES.xl.h; // 120
+        const XL_AREA = 120;
 
         const DENSITY_FLOORS = {
             standard:     { min: 5,  max: 8  },
@@ -532,6 +617,7 @@
         let grabOffsetY = 0;
         let hideTextOnSkinned = true;
         let currentDensity = 'standard';
+        let foodEnabled = true;
 
         const ITEM_DICTIONARY = {
             handgun:          { name: 'Handgun',           w: 3, h: 2, category: 'unique'    },
@@ -621,8 +707,16 @@
             const blueprint = ITEM_DICTIONARY[dictionaryId];
             if (!blueprint) return;
             if (blueprint.category === 'unique' && inventoryItems.some(i => i.id === dictionaryId)) return;
+
             const item = createItemInstance(dictionaryId);
-            if (item) { item.x = gridX; item.y = gridY; inventoryItems.push(item); }
+            if (!item) return;
+
+            const maxX = Math.max(0, GRID_WIDTH - item.w);
+            const maxY = Math.max(0, GRID_HEIGHT - item.h);
+            item.x = Math.max(0, Math.min(gridX, maxX));
+            item.y = Math.max(0, Math.min(gridY, maxY));
+
+            inventoryItems.push(item);
         }
 
         const gridContainer = document.getElementById('inventory-grid');
@@ -645,26 +739,81 @@
             }
         }
 
-        function setCaseSize(size) {
-            if (size === currentCaseSize) return;
+        
+        
+function updateCaseStats(){
+ const cap=document.getElementById('capacity-value');
+ const size=document.getElementById('size-display');
+ if(cap) cap.textContent = customCase.w * customCase.h;
+ if(size) size.textContent = customCase.w + ' × ' + customCase.h;
+}
 
-            const stage = document.getElementById('view-stage');
+function syncCustomCaseLabels() {
+            const widthValue = document.getElementById('width-value');
+            const heightValue = document.getElementById('height-value');
+            if (widthValue) widthValue.textContent = customCase.w;
+            if (heightValue) heightValue.textContent = customCase.h;
+        }
 
-            stage.classList.remove('anim-in');
-            stage.classList.add('anim-out');
+        function applyCustomCase(playMoveSfx = false) {
+            const widthSlider = document.getElementById('width-slider');
+            const heightSlider = document.getElementById('height-slider');
+            if (!widthSlider || !heightSlider) return;
 
-            stage.addEventListener('animationend', function onOut() {
-                stage.removeEventListener('animationend', onOut);
-                stage.classList.remove('anim-out');
+            const clamp = (value, slider) => {
+                const min = Number(slider.min ?? value);
+                const max = Number(slider.max ?? value);
+                return Math.max(min, Math.min(max, parseInt(value, 10) || min));
+            };
 
-                if (heldItem) { inventoryItems.push(heldItem); heldItem = null; }
+            customCase.w = clamp(widthSlider.value, widthSlider);
+            customCase.h = clamp(heightSlider.value, heightSlider);
+
+            widthSlider.value = customCase.w;
+            heightSlider.value = customCase.h;
+
+            CASE_SIZES.custom = {
+                w: customCase.w,
+                h: customCase.h
+            };
+
+            syncCustomCaseLabels(); updateCaseStats();
+            if (playMoveSfx) playSFX(sfxMoveHeld);
+            setCaseSize('custom', { animate: false });
+        }
+
+        function setCaseSize(size, options = {}) {
+            const target = CASE_SIZES[size];
+            if (!target) return;
+
+            const nextW = target.w;
+            const nextH = target.h;
+            const isSameSize = size === currentCaseSize;
+            const isSameDimensions = GRID_WIDTH === nextW && GRID_HEIGHT === nextH;
+
+            if (isSameSize && isSameDimensions) return;
+
+            const applyResize = () => {
+                if (heldItem) { inventoryItems.push(heldItem); heldItem = null; heldItemOrigin = null; }
 
                 currentCaseSize = size;
-                GRID_WIDTH  = CASE_SIZES[size].w;
-                GRID_HEIGHT = CASE_SIZES[size].h;
+                GRID_WIDTH  = nextW;
+                GRID_HEIGHT = nextH;
+
+                const widthSlider=document.getElementById('width-slider');
+                const heightSlider=document.getElementById('height-slider');
+                if(size !== 'custom' && widthSlider && heightSlider){
+                    customCase.w = nextW;
+                    customCase.h = nextH;
+                    widthSlider.value = nextW;
+                    heightSlider.value = nextH;
+                    syncCustomCaseLabels();
+                    if(typeof updateCaseStats==='function') updateCaseStats();
+                }
 
                 document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById(`size-${size}`).classList.add('active');
+                const activeBtn = document.getElementById(`size-${size}`);
+                if (activeBtn) activeBtn.classList.add('active');
 
                 inventoryItems = inventoryItems.filter(item => {
                     const fitsNormal  = item.x + item.w <= GRID_WIDTH && item.y + item.h <= GRID_HEIGHT;
@@ -677,12 +826,31 @@
                     return fitsNormal;
                 });
 
-                currentX = Math.min(currentX, GRID_WIDTH  - 1);
-                currentY = Math.min(currentY, GRID_HEIGHT - 1);
+                currentX = Math.min(currentX, Math.max(0, GRID_WIDTH  - 1));
+                currentY = Math.min(currentY, Math.max(0, GRID_HEIGHT - 1));
 
                 buildGrid();
                 drawInventoryFootprints();
                 updateHighlight(currentX, currentY);
+            };
+
+            const shouldAnimate = options.animate !== false && size !== 'custom';
+
+            if (!shouldAnimate) {
+                applyResize();
+                return;
+            }
+
+            const stage = document.getElementById('view-stage');
+
+            stage.classList.remove('anim-in');
+            stage.classList.add('anim-out');
+
+            stage.addEventListener('animationend', function onOut() {
+                stage.removeEventListener('animationend', onOut);
+                stage.classList.remove('anim-out');
+
+                applyResize();
 
                 stage.classList.add('anim-in');
                 stage.addEventListener('animationend', function onIn() {
@@ -707,6 +875,10 @@
             hideTextOnSkinned = document.getElementById('toggle-hide-text').checked;
             drawInventoryFootprints();
             updateHighlight(currentX, currentY);
+        }
+
+        function toggleFoodItems() {
+            foodEnabled = document.getElementById('toggle-food').checked;
         }
 
         document.addEventListener('click', (e) => {
@@ -988,7 +1160,7 @@
                 fillAttempts++;
                 let id;
 
-                if (Math.random() < 0.02) {
+                if (foodEnabled && Math.random() < 0.04) {
                     id = FOOD_POOL[Math.floor(Math.random() * FOOD_POOL.length)];
                 } else {
                     id = weightedPickStackable(preferredAmmo, validStackables);
