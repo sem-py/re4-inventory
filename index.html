@@ -897,25 +897,27 @@
 
         const AMMO_KEYS = new Set(['handgun_ammo', 'shotgun_shells', 'tmp_ammo', 'rifle_ammo', 'magnum_ammo']);
 
+        const FOOD_POOL = [
+            'egg','egg','egg','egg',
+            'brown_egg','brown_egg',
+            'bass','bass','bass',
+            'large_bass',
+            'golden_egg'
+        ];
+
+
         function weightedPickStackable(preferred, all) {
             const weighted = [];
-        
-            for (const id of all) {
+            const nonFood = all.filter(id =>
+                !['egg','brown_egg','golden_egg','bass','large_bass'].includes(id)
+            );
+
+            for (const id of nonFood) {
                 if (id === 'magnum_ammo' && !preferred.has(id)) continue;
-        
+
                 let w;
-        
-                if (id === 'golden_egg') {
-                    w = 1;
-                } else if (id === 'brown_egg') {
-                    w = 2;
-                } else if (id === 'egg') {
-                    w = 3;
-                } else if (id === 'large_bass') {
-                    w = 1;
-                } else if (id === 'bass') {
-                    w = 3;
-                } else if (id === 'magnum_ammo' && preferred.has(id)) {
+
+                if (id === 'magnum_ammo' && preferred.has(id)) {
                     w = 2;
                 } else if (preferred.has(id)) {
                     w = 4;
@@ -924,10 +926,10 @@
                 } else {
                     w = 3;
                 }
-        
+
                 for (let i = 0; i < w; i++) weighted.push(id);
             }
-        
+
             return weighted[Math.floor(Math.random() * weighted.length)];
         }
         
@@ -984,7 +986,13 @@
             let fillAttempts = 0;
             while (poolToGenerate.length < stackableTarget && validStackables.length > 0 && fillAttempts < stackableBudget * 10) {
                 fillAttempts++;
-                const id = weightedPickStackable(preferredAmmo, validStackables);
+                let id;
+
+                if (Math.random() < 0.02) {
+                    id = FOOD_POOL[Math.floor(Math.random() * FOOD_POOL.length)];
+                } else {
+                    id = weightedPickStackable(preferredAmmo, validStackables);
+                }
 
                 let amount = 1;
                 
