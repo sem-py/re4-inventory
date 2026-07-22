@@ -306,53 +306,188 @@
             z-index: 200;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
             background: linear-gradient(180deg, #333 0%, #1a1a1a 100%);
             border: 2px solid #555;
-            padding: 6px 12px;
-            height: 35px;
             box-sizing: border-box;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             opacity: 0.4;
-            transition: all 0.15s ease;
+            transition: opacity 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, width 0.2s ease, height 0.2s ease, padding 0.2s ease;
+            overflow: hidden;
+            height: 35px;
+            width: 35px;
+            padding: 0;
+            cursor: pointer;
         }
 
-        #music-container:hover {
+        #music-container:hover,
+        #music-container.expanded {
             opacity: 1;
             border-color: #FFD700;
             box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
         }
 
-        #volume-slider {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 80px;
-            height: 4px;
-            background: #555;
-            outline: none;
-            cursor: pointer;
-            border-radius: 2px;
+        #music-container.expanded {
+            width: 176px;
+            height: auto;
+            padding: 10px 12px;
+            align-items: stretch;
+            justify-content: flex-start;
+            overflow: visible;
+            cursor: default;
         }
 
-        #volume-slider::-webkit-slider-thumb {
+        #sound-toggle-btn {
+            flex: none;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #music-container.expanded #sound-toggle-btn {
+            display: none;
+        }
+
+        #sound-panel {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        #music-container.expanded #sound-panel {
+            display: flex;
+        }
+
+        .sound-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #music-container .vol-slider {
             -webkit-appearance: none;
             appearance: none;
-            width: 10px;
-            height: 10px;
+            flex: 1;
+            width: 100%;
+            min-width: 0;
+            height: 2px;
+            background: #444;
+            outline: none;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        #music-container .vol-slider:hover {
+            background: #666;
+        }
+
+        #music-container .vol-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 8px;
+            height: 8px;
             background: #FFD700;
             border-radius: 50%;
             cursor: pointer;
             box-shadow: 0 0 4px rgba(0,0,0,0.5);
         }
 
-        #volume-slider::-moz-range-thumb {
-            width: 10px;
-            height: 10px;
+        #music-container .vol-slider::-moz-range-thumb {
+            width: 8px;
+            height: 8px;
             background: #FFD700;
             border: none;
             border-radius: 50%;
             cursor: pointer;
             box-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+
+        #music-container .control-icon {
+            flex: none;
+            font-size: 13px;
+            user-select: none;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        #music-container .panel-divider {
+            height: 1px;
+            background: #555;
+            margin: 2px 0;
+        }
+
+        #music-container .bgm-label {
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: #888;
+            text-transform: uppercase;
+            user-select: none;
+        }
+
+        #music-container .bgm-options {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        #music-container .bgm-option {
+            text-align: left;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 6px 10px;
+            font-size: 10px;
+        }
+
+        #music-container .bgm-option.active {
+            color: #FFD700;
+            border-color: #FFD700;
+            background: #1a1800;
+        }
+
+        #edge-rotate-btn {
+        position: absolute;
+        right: -34px; 
+        top: 50%;
+        transform: translateY(-50%) translateX(-10px);
+        background: linear-gradient(180deg, #333 0%, #1a1a1a 100%);
+        border: 2px solid #555;
+        border-left: none;
+        color: #FFD700;
+        width: 30px;
+        height: 60px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 150;
+        box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+        }
+
+        #edge-rotate-btn.visible {
+            transform: translateY(-50%) translateX(0);
+            opacity: 0.8;
+            pointer-events: auto;
+        }
+
+        #edge-rotate-btn:hover {
+            opacity: 1;
+            border-color: #FFD700;
+            background: #222;
+            text-shadow: 0 0 4px rgba(255, 215, 0, 0.6);
         }
     
 .custom-case-box{
@@ -405,7 +540,7 @@ min-width:42px;
 <body>
 
     <div id="control-panel">
-        <button class="btn icon-btn" id="reshuffle-btn" onmouseenter="playSFX(sfxMoveHeld)" onclick="triggerResetLayout()" data-tooltip="Reshuffle (3 left)" style="padding:8px 12px; font-size:15px;">↺</button>
+        <button class="btn icon-btn" id="reshuffle-btn" onmouseenter="playSFX(sfxMoveHeld)" onmouseleave="this.blur()" onclick="triggerResetLayout()" data-tooltip="Reshuffle (3 left)" style="padding:8px 12px; font-size:15px;">↺</button>
         <button class="btn icon-btn" onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPick); triggerRandomSpawn();" data-tooltip="Randomize" style="padding:8px 12px; font-size:15px;">🎲</button>
         
         <div style="position:relative;">
@@ -479,14 +614,30 @@ min-width:42px;
     <div id="view-stage">
         <div id="inventory-grid">
             <div id="highlighter-overlay"></div>
+            <button id="edge-rotate-btn" onclick="rotateHeldItem()" onmouseenter="playSFX(sfxMoveHeld)">⟳</button>
         </div>
     </div>
 
     <button id="info-btn" class="btn" onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPick); toggleInfoModal();">?</button>
 
     <div id="music-container">
-        <span style="font-size: 13px; cursor: default; user-select: none;">🎵</span>
-        <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.3" oninput="updateVolume(this.value)">
+        <button id="sound-toggle-btn" type="button" onmouseenter="playSFX(sfxMoveHeld)">🔊</button>
+        <div id="sound-panel">
+            <div class="sound-row">
+                <span id="sfx-icon" class="control-icon" onmouseenter="playSFX(sfxMoveHeld)">🔊</span>
+                <input type="range" class="vol-slider" id="sfx-volume-slider" min="0" max="1" step="0.05" value="1" oninput="updateSfxVolume(this.value)">
+            </div>
+            <div class="sound-row">
+                <span id="music-icon" class="control-icon" onmouseenter="playSFX(sfxMoveHeld)">🎵</span>
+                <input type="range" class="vol-slider" id="volume-slider" min="0" max="1" step="0.05" value="0" oninput="updateVolume(this.value)">
+            </div>
+            <div class="panel-divider"></div>
+            <div class="bgm-label">BGM</div>
+            <div class="bgm-options">
+                <button type="button" class="btn bgm-option active" data-track="serenity.mp3" onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPick); selectBgm(this)">Serenity</button>
+                <button type="button" class="btn bgm-option" data-track="save_theme.mp3" onmouseenter="playSFX(sfxMoveHeld)" onclick="playSFX(sfxPick); selectBgm(this)">Save Theme</button>
+            </div>
+        </div>
     </div>
 
     <div id="info-overlay" onclick="toggleInfoModal()"></div>
@@ -505,6 +656,7 @@ min-width:42px;
 
     <audio id="bg-music" src="serenity.mp3" loop></audio>
 
+
     <script>
         const sfxStart    = new Audio('audio/sfx_start.wav');
         const sfxMove     = new Audio('audio/sfx_move.wav');
@@ -515,27 +667,54 @@ min-width:42px;
         const sfxFail     = new Audio('audio/sfx_fail.wav');
         const sfxHerb     = new Audio('audio/sfx_herb.wav');
         const bgMusic     = document.getElementById('bg-music');
+        let sfxVolume = 1;
+        let lastSfxVolume = 1;
 
         function playSFX(audio) {
+            if (sfxVolume <= 0) return;
             audio.currentTime = 0;
+            audio.volume = sfxVolume;
             audio.play().catch(e => console.log("Audio playback prevented:", e));
+        }
+
+        function updateSfxVolume(val) {
+            sfxVolume = parseFloat(val);
+            if (sfxVolume > 0) lastSfxVolume = sfxVolume;
         }
 
         function updateVolume(val) {
             if (bgMusic) {
                 bgMusic.volume = val;
-                if (val > 0 && bgMusic.paused) {
-                    bgMusic.play().catch(e => console.log("Music play blocked:", e));
+                if (val > 0) {
+                    bgMusic.muted = false;
+                    if (bgMusic.paused) {
+                        bgMusic.play().catch(e => console.log("Music play blocked:", e));
+                    }
                 }
+            }
+        }
+
+        function selectBgm(btn) {
+            const track = btn.getAttribute('data-track');
+            if (!bgMusic || bgMusic.getAttribute('src') === track) return;
+
+            document.querySelectorAll('.bgm-option').forEach(opt => opt.classList.remove('active'));
+            btn.classList.add('active');
+
+            const wasPlaying = !bgMusic.paused && !bgMusic.muted && bgMusic.volume > 0;
+            const currentVolume = bgMusic.volume;
+            bgMusic.src = track;
+            bgMusic.volume = currentVolume;
+            if (wasPlaying) {
+                bgMusic.play().catch(e => console.log("Music play blocked:", e));
             }
         }
 
         window.addEventListener('DOMContentLoaded', () => { 
             playSFX(sfxStart);
             if (bgMusic) {
-                const slider = document.getElementById('volume-slider');
-                bgMusic.volume = slider ? slider.value : 0.3;
-                bgMusic.play().catch(e => console.log("Autoplay blocked. Click window context to start background track."));
+                bgMusic.volume = 0;
+                bgMusic.muted = true;
             }
 
             const widthSlider = document.getElementById('width-slider');
@@ -549,13 +728,54 @@ min-width:42px;
 
             updateReshuffleBtn();
             triggerRandomSpawn();
+
+            const musicContainer = document.getElementById('music-container');
+            const soundToggleBtn = document.getElementById('sound-toggle-btn');
+
+            soundToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                playSFX(sfxPick);
+                musicContainer.classList.add('expanded');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (musicContainer.classList.contains('expanded') && !musicContainer.contains(e.target)) {
+                    musicContainer.classList.remove('expanded');
+                }
+            });
+
+            document.getElementById('music-icon').addEventListener('click', (e) => {
+                e.stopPropagation();
+                playSFX(sfxPick);
+                const slider = document.getElementById('volume-slider');
+                if (bgMusic.muted || bgMusic.volume === 0) {
+                    bgMusic.muted = false;
+                    bgMusic.volume = 0.3;
+                    slider.value = 0.3;
+                    bgMusic.play().catch(err => console.log(err));
+                } else {
+                    bgMusic.muted = true;
+                    bgMusic.volume = 0;
+                    slider.value = 0;
+                }
+            });
+
+            document.getElementById('sfx-icon').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const wasMuted = sfxVolume === 0;
+                const slider = document.getElementById('sfx-volume-slider');
+                if (sfxVolume === 0) {
+                    sfxVolume = lastSfxVolume || 0.5;
+                } else {
+                    lastSfxVolume = sfxVolume;
+                    sfxVolume = 0;
+                }
+                slider.value = sfxVolume;
+                if (wasMuted) playSFX(sfxPick);
+            });
         });
 
-        window.addEventListener('click', () => {
-            if (bgMusic && bgMusic.paused && bgMusic.volume > 0) {
-                bgMusic.play().catch(e => console.log("Music play blocked:", e));
-            }
-        }, { once: true });
+        
 
         const CASE_SIZES = {
             s:  { w: 10, h: 6  },
@@ -1000,6 +1220,7 @@ function syncCustomCaseLabels() {
         }
 
         let reshuffleCount = 0;
+        let startingHandgunGiven = false;
         const MAX_RESHUFFLES = 3;
 
         function updateReshuffleBtn() {
@@ -1013,6 +1234,7 @@ function syncCustomCaseLabels() {
 
         function triggerResetLayout() {
             if (reshuffleCount >= MAX_RESHUFFLES) return;
+            document.getElementById('reshuffle-btn').blur();
             if (heldItem) { inventoryItems.push(heldItem); heldItem = null; heldItemOrigin = null; }
             const itemsToReorder = inventoryItems.map(item => {
                 const originalBlueprint = ITEM_DICTIONARY[item.id];
@@ -1120,9 +1342,21 @@ function syncCustomCaseLabels() {
             const poolToGenerate = [];
             const validGunIds = new Set(getValidItems().filter(id => ITEM_DICTIONARY[id].category === 'unique'));
 
-            const chosenGuns = new Set(['handgun']);
-            const handgunInst = createItemInstance('handgun');
-            if (handgunInst) poolToGenerate.push(handgunInst);
+            const chosenGuns = new Set();
+            if (!startingHandgunGiven) {
+                startingHandgunGiven = true;
+                chosenGuns.add('handgun');
+                const handgunInst = createItemInstance('handgun');
+                if (handgunInst) poolToGenerate.push(handgunInst);
+            } else {
+                const eligiblePistols = GUN_CATEGORIES.pistol.filter(id => validGunIds.has(id));
+                if (eligiblePistols.length > 0) {
+                    const pistolId = eligiblePistols[Math.floor(Math.random() * eligiblePistols.length)];
+                    chosenGuns.add(pistolId);
+                    const pistolInst = createItemInstance(pistolId);
+                    if (pistolInst) poolToGenerate.push(pistolInst);
+                }
+            }
 
             const catKeys = Object.keys(GUN_CATEGORIES).sort(() => Math.random() - 0.5);
 
@@ -1239,6 +1473,7 @@ function syncCustomCaseLabels() {
             if (coordinatesChanged) playSFX(heldItem ? sfxMoveHeld : sfxMove);
 
             const overlay = document.getElementById('highlighter-overlay');
+            const edgeRotateBtn = document.getElementById('edge-rotate-btn');
             overlay.className = '';
             const oldTexture = overlay.querySelector('.item-texture');
             if (oldTexture) oldTexture.remove();
@@ -1246,6 +1481,7 @@ function syncCustomCaseLabels() {
             let targetX = currentX, targetY = currentY, targetW = 1, targetH = 1;
 
             if (heldItem) {
+                if (edgeRotateBtn) edgeRotateBtn.classList.add('visible');
                 targetW = heldItem.w; targetH = heldItem.h;
                 targetX = Math.max(0, Math.min(currentX - grabOffsetX, GRID_WIDTH  - targetW));
                 targetY = Math.max(0, Math.min(currentY - grabOffsetY, GRID_HEIGHT - targetH));
@@ -1277,6 +1513,7 @@ function syncCustomCaseLabels() {
                 const computedBg = window.getComputedStyle(textureEl).backgroundImage;
                 textureEl.innerText = (hideTextOnSkinned && computedBg !== 'none' && computedBg !== '') ? '' : heldItem.name;
             } else {
+                if (edgeRotateBtn) edgeRotateBtn.classList.remove('visible');
                 const hoveredItem = getItemAt(currentX, currentY);
                 if (hoveredItem) {
                     targetX = hoveredItem.x; targetY = hoveredItem.y;
